@@ -53,7 +53,7 @@ defmodule Game do
   def start_link(moves \\ []), do: GenServer.start_link(__MODULE__, moves)
 
   @doc """
-  Submit a move for whoever's turn it currently is by specifying a column.
+  Submit a move for whomever's turn it currently is by specifying a column.
 
   ## Examples
 
@@ -65,6 +65,11 @@ defmodule Game do
 
   The server is stopped after a move is played which ends the game.
 
+  Game results are reported as atoms and can be one of the following:
+      - `nil` (when a game is still in progress)
+      - `:yellow_wins`
+      - `:red_wins`
+      - `:draw` (when the board fills up without four connected pieces)
   """
   @spec move(pid(), integer()) ::
           {:ok, %{moves: [integer()], result: nil | :yellow_wins | :red_wins | :draw}}
