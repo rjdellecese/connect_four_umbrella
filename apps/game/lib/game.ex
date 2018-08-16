@@ -21,10 +21,8 @@ defmodule Game do
     column_heights: %{0 => 0, 1 => 7, 2 => 14, 3 => 21, 4 => 28, 5 => 35, 6 => 42},
     moves: [],
     plies: 0,
-    red_bitboard: 0,
-    result: nil,
-    yellow_bitboard: 0
-    # Maybe player_bitboards: %{yellow: 0, red: 0}
+    bitboards: %{yellow: 0, red: 0},
+    result: nil
   )
 
   ############
@@ -199,9 +197,14 @@ defmodule Game do
       game
       | :moves => new_moves,
         :plies => new_plies,
-        bitboard_color => new_bitboard,
         :column_heights => new_column_heights
     }
+
+    updated_game =
+      case bitboard_color do
+        :yellow -> put_in(updated_game.bitboards.yellow, new_bitboard)
+        :red -> put_in(updated_game.bitboards.red, new_bitboard)
+      end
 
     # TODO: Extract to set_result(game)
     cond do
@@ -216,22 +219,14 @@ defmodule Game do
     end
   end
 
-  defp current_color(%__MODULE__{plies: plies}) do
-    case plies &&& 1 do
-      0 -> :yellow
-      1 -> :red
-    end
-  end
-
-  @spec current_bitboard(%__MODULE__{}) :: {:yellow_bitboard | :red_bitboard, integer()}
+  @spec current_bitboard(%__MODULE__{}) :: {:yellow | :red, integer()}
   defp current_bitboard(%__MODULE__{
          plies: plies,
-         yellow_bitboard: yellow_bitboard,
-         red_bitboard: red_bitboard
+         bitboards: %{yellow: yellow_bitboard, red: red_bitboard}
        }) do
     case plies &&& 1 do
-      0 -> {:yellow_bitboard, yellow_bitboard}
-      1 -> {:red_bitboard, red_bitboard}
+      0 -> {:yellow, yellow_bitboard}
+      1 -> {:red, red_bitboard}
     end
   end
 
@@ -260,8 +255,7 @@ defmodule Game do
   @spec connected_four?(%__MODULE__{}) :: boolean()
   defp connected_four?(%__MODULE__{
          plies: plies,
-         yellow_bitboard: yellow_bitboard,
-         red_bitboard: red_bitboard
+         bitboards: %{yellow: yellow_bitboard, red: red_bitboard}
        }) do
     bitboard =
       case plies &&& 1 do
@@ -299,8 +293,8 @@ defmodule Game do
 
   @spec print_board(%__MODULE__{}) :: String.t()
   defp print_board(game = %__MODULE__{}) do
-    red_bitboard_string = print_bitboard(game.red_bitboard)
-    yellow_bitboard_string = print_bitboard(game.yellow_bitboard)
+    red_bitboard_string = print_bitboard(game.bitboards.red)
+    yellow_bitboard_string = print_bitboard(game.bitboards.yellow)
 
     board_string =
       Enum.reduce(0..41, "", fn n, board_string_ ->
