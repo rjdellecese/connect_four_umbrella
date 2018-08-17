@@ -193,7 +193,8 @@ defmodule Game do
         {column_height, column_height + 1}
       end)
 
-    {bitboard_color, old_bitboard} = current_bitboard(game)
+    bitboard_color = color_to_move(game)
+    old_bitboard = Map.get(game.bitboards, bitboard_color)
     new_moves = game.moves ++ [column]
     new_bitboard = old_bitboard ^^^ (1 <<< old_column_height)
     new_plies = game.plies + 1
@@ -202,16 +203,15 @@ defmodule Game do
       game
       | :moves => new_moves,
         :plies => new_plies,
+        :bitboards => %{game.bitboards | bitboard_color => new_bitboard},
         :column_heights => new_column_heights
     }
 
-    updated_game =
-      case bitboard_color do
-        :yellow -> put_in(updated_game.bitboards.yellow, new_bitboard)
-        :red -> put_in(updated_game.bitboards.red, new_bitboard)
-      end
+    set_result(updated_game)
+  end
 
-    # TODO: Extract to set_result(game)
+  @spec set_result(%__MODULE__{}) :: %__MODULE__{}
+  defp set_result(updated_game = %__MODULE__{}) do
     cond do
       connected_four?(updated_game) ->
         %{updated_game | result: winning_color(updated_game)}
@@ -224,14 +224,19 @@ defmodule Game do
     end
   end
 
-  @spec current_bitboard(%__MODULE__{}) :: {:yellow | :red, integer()}
-  defp current_bitboard(%__MODULE__{
-         plies: plies,
-         bitboards: %{yellow: yellow_bitboard, red: red_bitboard}
-       }) do
+  @spec color_to_move(%__MODULE__{}) :: :yellow | :red
+  defp color_to_move(%__MODULE__{plies: plies}) do
     case plies &&& 1 do
-      0 -> {:yellow, yellow_bitboard}
-      1 -> {:red, red_bitboard}
+      0 -> :yellow
+      1 -> :red
+    end
+  end
+
+  @spec color_last_moved(%__MODULE__{}) :: :yellow | :red
+  defp color_last_moved(%__MODULE__{plies: plies}) do
+    case plies &&& 1 do
+      1 -> :yellow
+      0 -> :red
     end
   end
 
@@ -258,15 +263,8 @@ defmodule Game do
   end
 
   @spec connected_four?(%__MODULE__{}) :: boolean()
-  defp connected_four?(%__MODULE__{
-         plies: plies,
-         bitboards: %{yellow: yellow_bitboard, red: red_bitboard}
-       }) do
-    bitboard =
-      case plies &&& 1 do
-        1 -> yellow_bitboard
-        0 -> red_bitboard
-      end
+  defp connected_four?(game = %__MODULE__{}) do
+    bitboard = Map.get(game.bitboards, color_last_moved(game))
 
     direction_offsets = [1, 7, 6, 8]
 
