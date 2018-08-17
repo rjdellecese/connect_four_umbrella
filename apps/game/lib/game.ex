@@ -66,7 +66,7 @@ defmodule Game do
   The server is stopped after a move is played which ends the game.
 
   Game results are reported as atoms and can be one of the following:
-      - `nil` (when a game is still in progress)
+      - `nil` (when the game is still in progress)
       - `:yellow_wins`
       - `:red_wins`
       - `:draw` (when the board fills up without four connected pieces)
@@ -113,9 +113,6 @@ defmodule Game do
   """
   @spec visualize_board(pid()) :: {:ok, String.t()}
   def visualize_board(pid), do: GenServer.call(pid, :visualize_board)
-
-  # TODO: Remove! This is for debugging purposes only, and in lieu of good tests.
-  def get_state(pid), do: GenServer.call(pid, :get_state)
 
   ##################
   # Server callbacks
@@ -186,7 +183,6 @@ defmodule Game do
   ##############
 
   @spec make_move(integer(), %__MODULE__{}) :: %__MODULE__{}
-  # TODO: Refactor this more.
   defp make_move(column, game = %__MODULE__{}) do
     {old_column_height, new_column_heights} =
       Map.get_and_update!(game.column_heights, column, fn column_height ->
@@ -293,6 +289,10 @@ defmodule Game do
       end
     end)
   end
+
+  #####################
+  # Board visualization
+  #####################
 
   @spec print_board(%__MODULE__{}) :: String.t()
   defp print_board(game = %__MODULE__{}) do
