@@ -173,6 +173,7 @@ defmodule Game do
   end
 
   # TODO: Remove!
+  # For debugging
   @impl true
   def handle_call(:get_state, _from, game = %__MODULE__{}) do
     {:reply, {:ok, game}, game}
