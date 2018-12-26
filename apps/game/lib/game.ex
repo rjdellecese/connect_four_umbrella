@@ -114,6 +114,9 @@ defmodule Game do
   @spec visualize_board(pid()) :: {:ok, String.t()}
   def visualize_board(pid), do: GenServer.call(pid, :visualize_board)
 
+  # FOR DEBUGGING
+  def get_state(pid), do: GenServer.call(pid, :get_state)
+
   ##################
   # Server callbacks
   ##################

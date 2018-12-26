@@ -10,9 +10,13 @@ defmodule MonteCarloTreeSearch.Zipper do
 
   @spec root?(%__MODULE__{}) :: boolean()
   def root?(zipper = %__MODULE__{}) do
-    List.empty?(zipper.breadcrumbs)
+    Enum.empty?(zipper.breadcrumbs)
   end
 
+  # Maybe there's a better API here than returning nil if the focus is the root...
+  @doc """
+  Returns nil if the zipper's focus is the root node.
+  """
   @spec up(%__MODULE__{}) :: %__MODULE__{} | nil
   def up(zipper = %__MODULE__{}) do
     if root?(zipper) do

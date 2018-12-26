@@ -6,7 +6,7 @@ defmodule MonteCarloTreeSearch.Node do
   alias MonteCarloTreeSearch.Payload
 
   @enforce_keys [:payload]
-  defstruct(payload: %Payload{}, children: [])
+  defstruct(payload: %Payload{}, children: nil)
 
   @spec leaf?(%__MODULE__{}) :: boolean()
   def leaf?(node = %__MODULE__{}), do: Enum.empty?(node.children)
