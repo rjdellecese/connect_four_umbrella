@@ -1,8 +1,8 @@
-defmodule MonteCarloTreeSearch.ZipperTest do
+defmodule MCTS.ZipperTest do
   use ExUnit.Case, async: true
-  doctest MonteCarloTreeSearch.Zipper
+  doctest MCTS.Zipper
 
-  alias MonteCarloTreeSearch.{Node, Zipper}
+  alias MCTS.{Node, Zipper}
 
   setup do
     ####################

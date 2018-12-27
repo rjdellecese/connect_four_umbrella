@@ -1,4 +1,4 @@
-defmodule MonteCarloTreeSearch do
+defmodule MCTS do
   @moduledoc """
   A Monte Carlo Tree Search implementation for Connect Four.
   """
@@ -6,7 +6,7 @@ defmodule MonteCarloTreeSearch do
   require Logger
   require Integer
 
-  alias MonteCarloTreeSearch.{Node, Payload, Zipper}
+  alias MCTS.{Node, Payload, Zipper}
 
   @typep zipper_with_game_result :: {%Zipper{}, Game.result()}
 

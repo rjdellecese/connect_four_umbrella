@@ -1,9 +1,9 @@
-defmodule MonteCarloTreeSearch.MixProject do
+defmodule MCTS.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :monte_carlo_tree_search,
+      app: :mcts,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",

@@ -1,8 +1,8 @@
-defmodule MonteCarloTreeSearch.NodeTest do
+defmodule MCTS.NodeTest do
   use ExUnit.Case, async: true
-  doctest MonteCarloTreeSearch.Node
+  doctest MCTS.Node
 
-  alias MonteCarloTreeSearch.Node
+  alias MCTS.Node
 
   setup do
     leaf_node = %Node{payload: "leaf", children: []}

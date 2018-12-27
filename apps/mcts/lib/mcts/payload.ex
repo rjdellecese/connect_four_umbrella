@@ -1,6 +1,6 @@
-defmodule MonteCarloTreeSearch.Payload do
+defmodule MCTS.Payload do
   @moduledoc """
-  Payload for a node in a Monte Carlo Tree.
+  Payload for a node in a Monte Carlo Tree Search tree.
   """
 
   defstruct(state: nil, reward: 0, visits: 0, fully_expanded: false)

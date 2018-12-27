@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure your application as:
 #
-#     config :monte_carlo_tree_search, key: :value
+#     config :mcts, key: :value
 #
 # and access this configuration in your application as:
 #
-#     Application.get_env(:monte_carlo_tree_search, :key)
+#     Application.get_env(:mcts, :key)
 #
 # You can also configure a 3rd-party app:
 #

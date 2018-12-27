@@ -1,9 +1,9 @@
-defmodule MonteCarloTreeSearch.Breadcrumb do
+defmodule MCTS.Breadcrumb do
   @moduledoc """
   A breadcrumb for tracking the current location of the focus in a zipper tree.
   """
 
-  alias MonteCarloTreeSearch.{Node, Payload}
+  alias MCTS.{Node, Payload}
 
   @enforce_keys [:payload, :left_nodes, :right_nodes]
   defstruct(

@@ -1,9 +1,9 @@
-defmodule MonteCarloTreeSearch.Zipper do
+defmodule MCTS.Zipper do
   @moduledoc """
   A zipper tree.
   """
 
-  alias MonteCarloTreeSearch.{Breadcrumb, Node}
+  alias MCTS.{Breadcrumb, Node}
 
   @enforce_keys [:focus]
   defstruct(focus: nil, breadcrumbs: [])

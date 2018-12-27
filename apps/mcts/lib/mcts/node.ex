@@ -1,9 +1,9 @@
-defmodule MonteCarloTreeSearch.Node do
+defmodule MCTS.Node do
   @moduledoc """
   A Monte Carlo Tree Search node.
   """
 
-  alias MonteCarloTreeSearch.Payload
+  alias MCTS.Payload
 
   @enforce_keys [:payload]
   defstruct(payload: %Payload{}, children: [])

@@ -1,8 +1,8 @@
-defmodule MonteCarloTreeSearchTest do
+defmodule MCTSTest do
   use ExUnit.Case, async: true
-  doctest MonteCarloTreeSearch
+  doctest MCTS
 
-  alias MonteCarloTreeSearch.{Node, Payload, Zipper}
+  alias MCTS.{Node, Payload, Zipper}
 
   setup do
     # Moves: [0, 1, 0, 1, 0, 1, 0] Yellow wins
@@ -62,7 +62,7 @@ defmodule MonteCarloTreeSearchTest do
   end
 
   test "backpropagating works", %{zipper: zipper} do
-    updated_zipper = MonteCarloTreeSearch.backpropagate({zipper, :yellow_wins})
+    updated_zipper = MCTS.backpropagate({zipper, :yellow_wins})
     assert updated_zipper.focus.payload.visits == 1
     assert updated_zipper.focus.payload.reward == 0
 
