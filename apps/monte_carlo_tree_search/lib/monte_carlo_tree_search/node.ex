@@ -8,8 +8,8 @@ defmodule MonteCarloTreeSearch.Node do
   @enforce_keys [:payload]
   defstruct(payload: %Payload{}, children: [])
 
-  @type t :: %__MODULE__{payload: %Payload{}, children: [%__MODULE__{}]}
+  @type t :: %__MODULE__{payload: Payload.t(), children: [__MODULE__.t()]}
 
-  @spec leaf?(%__MODULE__{}) :: boolean()
+  @spec leaf?(__MODULE__.t()) :: boolean()
   def leaf?(node = %__MODULE__{}), do: Enum.empty?(node.children)
 end

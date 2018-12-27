@@ -12,5 +12,5 @@ defmodule MonteCarloTreeSearch.Breadcrumb do
     right_nodes: []
   )
 
-  @type t :: %__MODULE__{payload: %Payload{}, left_nodes: [%Node{}], right_nodes: [%Node{}]}
+  @type t :: %__MODULE__{payload: Payload.t(), left_nodes: [Node.t()], right_nodes: [Node.t()]}
 end

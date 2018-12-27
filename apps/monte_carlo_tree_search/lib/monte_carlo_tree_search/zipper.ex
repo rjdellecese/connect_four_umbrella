@@ -8,9 +8,9 @@ defmodule MonteCarloTreeSearch.Zipper do
   @enforce_keys [:focus]
   defstruct(focus: nil, breadcrumbs: [])
 
-  @type t :: %__MODULE__{focus: %Node{}, breadcrumbs: [%Breadcrumb{}]}
+  @type t :: %__MODULE__{focus: Node.t(), breadcrumbs: [Breadcrumb.t()]}
 
-  @spec root?(%__MODULE__{}) :: boolean()
+  @spec root?(__MODULE__.t()) :: boolean()
   def root?(zipper = %__MODULE__{}) do
     Enum.empty?(zipper.breadcrumbs)
   end
@@ -18,7 +18,7 @@ defmodule MonteCarloTreeSearch.Zipper do
   @doc """
   Returns nil if the zipper's focus is the root node.
   """
-  @spec up(%__MODULE__{}) :: %__MODULE__{} | nil
+  @spec up(__MODULE__.t()) :: __MODULE__.t() | nil
   def up(zipper = %__MODULE__{}) do
     if root?(zipper) do
       nil
@@ -36,29 +36,43 @@ defmodule MonteCarloTreeSearch.Zipper do
     end
   end
 
-  @spec down(%__MODULE__{}, non_neg_integer()) :: %__MODULE__{} | nil
+  @doc """
+  Moves the zipper's focus down to the child at the given index.
+
+  Raises a `RuntimeError` if the zipper's focus has no children, and an `ArgumentError` if no
+  child exists at the given index.
+  """
+  @spec down(__MODULE__.t(), non_neg_integer()) :: __MODULE__.t()
   def down(zipper = %__MODULE__{}, index) when is_integer(index) do
-    if(index < 0 || index >= length(zipper.focus.children)) do
-      raise ArgumentError, message: "invalid index (out of bounds)"
+    # TODO: Test the error cases!
+    cond do
+      length(zipper.focus.children) == 0 ->
+        # Raise a custom exception here?
+        raise "focus node has no children"
+
+      index >= length(zipper.focus.children) ->
+        raise ArgumentError,
+          message: "no child node at index: #{index} (index may not be negative)"
+
+      true ->
+        {left_nodes, new_focus, right_nodes} = break(zipper.focus.children, index)
+
+        %{
+          zipper
+          | focus: new_focus,
+            breadcrumbs: [
+              %Breadcrumb{
+                payload: zipper.focus.payload,
+                left_nodes: left_nodes,
+                right_nodes: right_nodes
+              }
+              | zipper.breadcrumbs
+            ]
+        }
     end
-
-    {left_nodes, new_focus, right_nodes} = break(zipper.focus.children, index)
-
-    %{
-      zipper
-      | focus: new_focus,
-        breadcrumbs: [
-          %Breadcrumb{
-            payload: zipper.focus.payload,
-            left_nodes: left_nodes,
-            right_nodes: right_nodes
-          }
-          | zipper.breadcrumbs
-        ]
-    }
   end
 
-  @spec break([%Node{}], non_neg_integer()) :: {[%Node{}], %Node{}, [%Node{}]}
+  @spec break([Node.t()], non_neg_integer()) :: {[Node.t()], Node.t(), [Node.t()]}
   defp break(nodes, index) do
     left_items =
       if index == 0 do
