@@ -54,12 +54,12 @@ defmodule MonteCarloTreeSearchTest do
   end
 
   test "backpropagating works", %{zipper: zipper} do
-    updated_zipper = MonteCarloTreeSearch.backpropagate(zipper, 1)
+    updated_zipper = MonteCarloTreeSearch.backpropagate({zipper, :yellow_wins})
     assert updated_zipper.focus.payload.visits == 1
     assert updated_zipper.focus.payload.reward == 1
 
     updated_again_zipper = Zipper.down(updated_zipper, 0)
     assert updated_again_zipper.focus.payload.visits == 1
-    assert updated_again_zipper.focus.payload.reward == 1
+    assert updated_again_zipper.focus.payload.reward == 0
   end
 end

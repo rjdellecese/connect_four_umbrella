@@ -1,6 +1,6 @@
 defmodule MonteCarloTreeSearch.Zipper do
   @moduledoc """
-  The focus of a zipper tree.
+  A zipper tree.
   """
 
   alias MonteCarloTreeSearch.{Breadcrumb, Node}
@@ -8,12 +8,13 @@ defmodule MonteCarloTreeSearch.Zipper do
   @enforce_keys [:focus]
   defstruct(focus: nil, breadcrumbs: [])
 
+  @type t :: %__MODULE__{focus: %Node{}, breadcrumbs: [%Breadcrumb{}]}
+
   @spec root?(%__MODULE__{}) :: boolean()
   def root?(zipper = %__MODULE__{}) do
     Enum.empty?(zipper.breadcrumbs)
   end
 
-  # Maybe there's a better API here than returning nil if the focus is the root...
   @doc """
   Returns nil if the zipper's focus is the root node.
   """
@@ -35,11 +36,10 @@ defmodule MonteCarloTreeSearch.Zipper do
     end
   end
 
-  # TODO: Implement nil return case
-  @spec down(%__MODULE__{}, integer()) :: %__MODULE__{} | nil
-  def down(zipper = %__MODULE__{}, index) do
+  @spec down(%__MODULE__{}, non_neg_integer()) :: %__MODULE__{} | nil
+  def down(zipper = %__MODULE__{}, index) when is_integer(index) do
     if(index < 0 || index >= length(zipper.focus.children)) do
-      raise ArgumentError, message: "invalid index"
+      raise ArgumentError, message: "invalid index (out of bounds)"
     end
 
     {left_nodes, new_focus, right_nodes} = break(zipper.focus.children, index)
@@ -58,7 +58,7 @@ defmodule MonteCarloTreeSearch.Zipper do
     }
   end
 
-  @spec break([%Node{}], integer()) :: {[%Node{}], %Node{}, [%Node{}]}
+  @spec break([%Node{}], non_neg_integer()) :: {[%Node{}], %Node{}, [%Node{}]}
   defp break(nodes, index) do
     left_items =
       if index == 0 do

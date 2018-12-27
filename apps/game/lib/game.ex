@@ -25,6 +25,16 @@ defmodule Game do
     result: nil
   )
 
+  @type column :: 0..6
+  @type column_heights :: %{
+          required(0) => integer(),
+          required(1) => integer(),
+          required(2) => integer(),
+          required(3) => integer(),
+          required(4) => integer(),
+          required(5) => integer(),
+          required(6) => integer()
+        }
   @type player :: :yellow | :red
   @type result :: :yellow_wins | :red_wins | :draw | nil
 
@@ -74,8 +84,8 @@ defmodule Game do
       - `:red_wins`
       - `:draw` (when the board fills up without four connected pieces)
   """
-  @spec move(pid(), integer()) ::
-          {:ok, %{moves: [integer()], result: nil | :yellow_wins | :red_wins | :draw}}
+  @spec move(pid(), column()) ::
+          {:ok, %{moves: [column()], result: nil | :yellow_wins | :red_wins | :draw}}
   def move(pid, column), do: GenServer.call(pid, {:move, column})
 
   @doc """
@@ -92,7 +102,7 @@ defmodule Game do
       {:ok, [0, 1, 2, 4, 5, 6]}
 
   """
-  @spec legal_moves(pid()) :: {:ok, [integer()]}
+  @spec legal_moves(pid()) :: {:ok, [column()]}
   def legal_moves(pid), do: GenServer.call(pid, :legal_moves)
 
   @doc """
@@ -125,7 +135,7 @@ defmodule Game do
   ##################
 
   @impl true
-  @spec init(%__MODULE__{}) :: {:ok, %__MODULE__{}} | {:stop, String.t()}
+  @spec init([column()]) :: {:ok, %__MODULE__{}} | {:stop, String.t()}
   def init(moves \\ []) do
     if Enum.empty?(moves) do
       {:ok, %__MODULE__{}}
@@ -147,7 +157,7 @@ defmodule Game do
   end
 
   @impl true
-  @spec handle_call({:move, integer()}, GenServer.from(), %__MODULE__{}) ::
+  @spec handle_call({:move, column()}, GenServer.from(), %__MODULE__{}) ::
           {:reply, {:ok, %__MODULE__{}}, %__MODULE__{}}
   def handle_call({:move, column}, _from, game = %__MODULE__{}) do
     if legal_move?(column, game.column_heights) do
@@ -166,7 +176,7 @@ defmodule Game do
 
   @impl true
   @spec handle_call(:legal_moves, GenServer.from(), %__MODULE__{}) ::
-          {:reply, {:ok, [integer()]}, %__MODULE__{}}
+          {:reply, {:ok, [column()]}, %__MODULE__{}}
   def handle_call(:legal_moves, _from, game = %__MODULE__{}) do
     {:reply, {:ok, list_legal_moves(game.column_heights)}, game}
   end
@@ -189,7 +199,7 @@ defmodule Game do
   # Game logic
   ##############
 
-  @spec make_move(integer(), %__MODULE__{}) :: %__MODULE__{}
+  @spec make_move(column(), %__MODULE__{}) :: %__MODULE__{}
   defp make_move(column, game = %__MODULE__{}) do
     {old_column_height, new_column_heights} =
       Map.get_and_update!(game.column_heights, column, fn column_height ->
@@ -243,7 +253,7 @@ defmodule Game do
     end
   end
 
-  @spec load_game([integer()], %__MODULE__{}) :: {:ok, %__MODULE__{}} | {:error, String.t()}
+  @spec load_game([column()], %__MODULE__{}) :: {:ok, %__MODULE__{}} | {:error, String.t()}
   defp load_game(moves, game \\ %__MODULE__{})
 
   defp load_game([next_move | remaining_moves], game = %__MODULE__{}) do
@@ -255,12 +265,11 @@ defmodule Game do
     end
   end
 
-  @spec load_game([], %__MODULE__{}) :: {:ok, %__MODULE__{}}
   defp load_game([], game = %__MODULE__{}) do
     {:ok, game}
   end
 
-  @spec legal_move?(integer(), [integer()]) :: boolean()
+  @spec legal_move?(column(), column_heights()) :: boolean()
   defp legal_move?(column, column_heights) do
     Enum.member?(list_legal_moves(column_heights), column)
   end
@@ -284,7 +293,7 @@ defmodule Game do
     end
   end
 
-  @spec list_legal_moves([integer()]) :: [integer()]
+  @spec list_legal_moves(column_heights()) :: [integer()]
   defp list_legal_moves(column_heights) do
     full_top = 0b1000000_1000000_1000000_1000000_1000000_1000000_1000000
 
