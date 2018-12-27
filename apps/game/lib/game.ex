@@ -25,6 +25,9 @@ defmodule Game do
     result: nil
   )
 
+  @type player :: :yellow | :red
+  @type result :: :yellow_wins | :red_wins | :draw | nil
+
   ############
   # Public API
   ############

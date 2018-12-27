@@ -38,6 +38,10 @@ defmodule MonteCarloTreeSearch.Zipper do
   # TODO: Implement nil return case
   @spec down(%__MODULE__{}, integer()) :: %__MODULE__{} | nil
   def down(zipper = %__MODULE__{}, index) do
+    if(index < 0 || index >= length(zipper.focus.children)) do
+      raise ArgumentError, message: "invalid index"
+    end
+
     {left_nodes, new_focus, right_nodes} = break(zipper.focus.children, index)
 
     %{

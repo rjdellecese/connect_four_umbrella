@@ -11,6 +11,7 @@ defmodule MonteCarloTreeSearch do
   """
 
   require Logger
+  require Integer
 
   alias MonteCarloTreeSearch.{Node, Payload, Zipper}
 
@@ -27,7 +28,7 @@ defmodule MonteCarloTreeSearch do
     end)
   end
 
-  @spec search(%Zipper{}, Time.t()) :: integer()
+  @spec search(%Zipper{}, Time.t()) :: %Node{}
   def search(zipper, start_time) do
     Logger.info(fn -> "Searching... iteration ##{inspect(zipper.focus.payload.visits)}" end)
 
@@ -42,26 +43,26 @@ defmodule MonteCarloTreeSearch do
     end
   end
 
-  @spec traverse(%Zipper{}, pid()) :: %Zipper{}
+  @spec traverse(%Zipper{}, pid()) :: {%Zipper{}, Game.result()}
   def traverse(zipper, game_pid) do
     Logger.info("Traversing...")
 
-    cond do
-      # If the node has zero visits, its children haven't been calculated yet.
-      zipper.focus.payload.visits == 0 ->
-        zipper
+    if zipper.focus.payload.fully_expanded do
+      {new_zipper, result} = pick_best_uct(zipper, game_pid)
 
-      zipper.focus.payload.fully_expanded ->
-        pick_best_uct(zipper, game_pid) |> traverse(game_pid)
-
-      true ->
-        zipper
+      if is_nil(result) do
+        traverse(new_zipper, game_pid)
+      else
+        {new_zipper, result}
+      end
+    else
+      {zipper, nil}
     end
   end
 
   # Gotta figure out where to perform child calculation and record game results better.
-  @spec rollout(%Zipper{}, pid()) :: {%Zipper{}, integer()}
-  def rollout(zipper, game_pid) do
+  @spec rollout({%Zipper{}, Game.result()}, pid()) :: {%Zipper{}, Game.result()}
+  def rollout({zipper, nil}, game_pid) do
     Logger.info("Rolling out...")
 
     zipper_ =
@@ -74,12 +75,16 @@ defmodule MonteCarloTreeSearch do
     {new_zipper, result} = rollout_policy(zipper_, game_pid)
 
     if is_nil(result) do
-      rollout(new_zipper, game_pid)
+      rollout({new_zipper, nil}, game_pid)
     else
       # The node is a leaf, and has no children.
-      new_zipper_ = %{new_zipper | focus: %{zipper.focus | children: []}}
+      new_zipper_ = %{new_zipper | focus: %{new_zipper.focus | children: []}}
       {new_zipper_, result}
     end
+  end
+
+  def rollout({zipper, result}, game_pid) do
+    {zipper, result}
   end
 
   @spec rollout_policy(%Zipper{}, pid()) :: {%Zipper{}, integer()}
@@ -101,6 +106,28 @@ defmodule MonteCarloTreeSearch do
 
   @spec update_payload(%Zipper{}, integer()) :: %Zipper{}
   def update_payload(zipper, result) do
+    moves = zipper.focus.payload.state
+
+    player =
+      cond do
+        length(moves) == 0 -> :red
+        length(moves) |> Integer.is_odd() -> :yellow
+        length(moves) |> Integer.is_even() -> :red
+      end
+
+    reward =
+      case result do
+        :yellow_wins ->
+          if player == :yellow, do: 1, else: 0
+
+        :red_wins ->
+          if player == :red, do: 1, else: 0
+
+        :draw ->
+          0.5
+          # Else raise?
+      end
+
     %{
       zipper
       | focus: %{
@@ -108,7 +135,7 @@ defmodule MonteCarloTreeSearch do
           | payload: %{
               zipper.focus.payload
               | visits: zipper.focus.payload.visits + 1,
-                reward: zipper.focus.payload.reward + result,
+                reward: zipper.focus.payload.reward + reward,
                 fully_expanded: fully_expanded?(zipper.focus)
             }
         }
@@ -128,18 +155,22 @@ defmodule MonteCarloTreeSearch do
     Enum.max_by(zipper.focus.children, fn node -> node.payload.visits end)
   end
 
-  @spec pick_best_uct(%Zipper{}, pid()) :: %Node{}
+  @spec pick_best_uct(%Zipper{}, pid()) :: {%Zipper{}, integer() | nil}
   def pick_best_uct(zipper, game_pid) do
     best_uct_node =
       zipper.focus.children
       |> Enum.with_index()
       |> Enum.max_by(fn {node, _index} -> uct(zipper.focus, node) end)
 
+    # TODO: Share the code below with `pick_random_unvisited`
     {%Node{payload: %Payload{state: moves}}, index} = best_uct_node
     move = List.last(moves)
 
-    Game.move(game_pid, move)
-    Zipper.down(zipper, index)
+    {:ok, %{result: result}} = Game.move(game_pid, move)
+
+    new_zipper = Zipper.down(zipper, index)
+
+    {new_zipper, result}
   end
 
   @doc """
@@ -166,11 +197,6 @@ defmodule MonteCarloTreeSearch do
   # result integer will be 0 or 1
   @spec pick_random_unvisited(%Zipper{}, pid()) :: {%Zipper{}, integer() | nil}
   def pick_random_unvisited(zipper, game_pid) do
-    # if Enum.empty?(zipper.focus.children) do
-    #   require IEx
-    #   IEx.pry()
-    # end
-
     random_unvisited_child_node =
       zipper.focus.children
       |> Enum.with_index()
@@ -180,24 +206,13 @@ defmodule MonteCarloTreeSearch do
     {%Node{payload: %Payload{state: moves}}, index} = random_unvisited_child_node
     move = List.last(moves)
 
-    {:ok, %{result: result_atom}} = Game.move(game_pid, move)
-
-    # TODO: Replace this with something better and correct!
-    result =
-      case result_atom do
-        :yellow_wins -> 1
-        :red_wins -> 0
-        :draw -> 0.5
-        nil -> nil
-      end
+    {:ok, %{result: result}} = Game.move(game_pid, move)
 
     new_zipper = Zipper.down(zipper, index)
 
     {new_zipper, result}
   end
 
-  # TODO: Rename!! This isn't "expanding", it's more just like "calculating children". Expanding
-  # would be visiting the children.
   def expand_focused_node(zipper, game_pid) do
     {:ok, legal_moves} = Game.legal_moves(game_pid)
 
