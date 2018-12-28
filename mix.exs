@@ -5,7 +5,12 @@ defmodule ConnectFour.MixProject do
     [
       apps_path: "apps",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+
+      # Docs
+      name: "Connect Four",
+      source_url: "https://github.com/rjdellecese/connect_four",
+      homepage_url: "https://github.com/rjdellecese/connect_four"
     ]
   end
 
