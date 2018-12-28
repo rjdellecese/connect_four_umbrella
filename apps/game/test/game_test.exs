@@ -52,7 +52,7 @@ defmodule GameTest do
 
     Game.start_link([0, 2, 5, 8])
 
-    assert_received {:EXIT, _pid, _msg}
+    assert_receive {:EXIT, _pid, _msg}
 
     Process.flag(:trap_exit, false)
   end
@@ -62,7 +62,7 @@ defmodule GameTest do
 
     Game.start_link([1, 1, 2, 2, 3, 3, 4])
 
-    assert_received {:EXIT, _pid, _msg}
+    assert_receive {:EXIT, _pid, _msg}
 
     Process.flag(:trap_exit, false)
   end
