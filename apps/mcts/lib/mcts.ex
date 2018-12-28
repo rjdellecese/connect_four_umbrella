@@ -3,7 +3,6 @@ defmodule MCTS do
   A Monte Carlo Tree Search implementation for Connect Four.
   """
 
-  require Logger
   require Integer
 
   alias MCTS.{Node, Payload, Zipper}
@@ -22,17 +21,11 @@ defmodule MCTS do
 
     node = search(zipper, Time.utc_now(), move_duration)
 
-    Logger.info(fn ->
-      "Best move: play in column #{inspect(node.payload.state |> List.last())}"
-    end)
-
     List.last(node.payload.state)
   end
 
   @spec search(%Zipper{}, Time.t(), pos_integer()) :: %Node{}
   defp search(zipper, start_time, move_duration) do
-    Logger.info(fn -> "Searching... simulation ##{inspect(zipper.focus.payload.visits)}" end)
-
     if Time.diff(Time.utc_now(), start_time) < move_duration do
       {:ok, game_pid} = Game.start_link(zipper.focus.payload.state)
 
@@ -47,8 +40,6 @@ defmodule MCTS do
 
   @spec select(%Zipper{}, pid()) :: zipper_with_game_result()
   defp select(zipper, game_pid) do
-    Logger.info("Selecting...")
-
     if zipper.focus.payload.fully_expanded do
       {new_zipper, result} = select_best_uct(zipper, game_pid)
 
@@ -64,8 +55,6 @@ defmodule MCTS do
 
   @spec simulate(zipper_with_game_result(), pid()) :: zipper_with_game_result()
   defp simulate({zipper, nil}, game_pid) do
-    Logger.info("Simulating...")
-
     zipper_ =
       if zipper.focus.payload.visits == 0 do
         expand_focused_node(zipper, game_pid)
@@ -88,7 +77,6 @@ defmodule MCTS do
 
   @spec backpropagate(zipper_with_game_result()) :: %Zipper{}
   defp backpropagate({zipper, result}) do
-    Logger.info("Backpropagating...")
     new_zipper = update_payload(zipper, result)
 
     if Zipper.root?(new_zipper) do
