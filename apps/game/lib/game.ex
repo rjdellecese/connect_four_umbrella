@@ -29,13 +29,13 @@ defmodule Game do
     result: nil
   )
 
-  @typep t :: %__MODULE__{
-           bitboards: %{required(:yellow) => integer(), required(:red) => integer()},
-           column_heights: column_heights(),
-           moves: moves(),
-           plies: non_neg_integer(),
-           result: result()
-         }
+  @type t :: %__MODULE__{
+          bitboards: %{required(:yellow) => integer(), required(:red) => integer()},
+          column_heights: column_heights(),
+          moves: moves(),
+          plies: non_neg_integer(),
+          result: result()
+        }
 
   @typedoc """
   One of seven Connect Four game columns.
