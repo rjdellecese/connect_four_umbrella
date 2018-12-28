@@ -2,72 +2,27 @@ defmodule MCTSTest do
   use ExUnit.Case, async: true
   doctest MCTS
 
-  alias MCTS.{Node, Payload, Zipper}
+  test "searching from the start of the game works" do
+    move = MCTS.search([])
 
-  setup do
-    # Moves: [0, 1, 0, 1, 0, 1, 0] Yellow wins
-    zipper =
-      %Zipper{
-        focus: %Node{
-          payload: %Payload{state: []},
-          children: [
-            %Node{
-              payload: %Payload{state: [0]},
-              children: [
-                %Node{
-                  payload: %Payload{state: [0, 1]},
-                  children: [
-                    %Node{
-                      payload: %Payload{state: [0, 1, 0]},
-                      children: [
-                        %Node{
-                          payload: %Payload{state: [0, 1, 0, 1]},
-                          children: [
-                            %Node{
-                              payload: %Payload{state: [0, 1, 0, 1, 0]},
-                              children: [
-                                %Node{
-                                  payload: %Payload{state: [0, 1, 0, 1, 0, 1]},
-                                  children: [
-                                    %Node{
-                                      payload: %Payload{state: [0, 1, 0, 1, 0, 1, 0]},
-                                      children: []
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      }
-      |> Zipper.down(0)
-      |> Zipper.down(0)
-      |> Zipper.down(0)
-      |> Zipper.down(0)
-      |> Zipper.down(0)
-      |> Zipper.down(0)
-      |> Zipper.down(0)
-
-    true = Node.leaf?(zipper.focus)
-
-    %{zipper: zipper}
+    assert Enum.member?(0..6, move)
   end
 
-  test "backpropagating works", %{zipper: zipper} do
-    updated_zipper = MCTS.backpropagate({zipper, :yellow_wins})
-    assert updated_zipper.focus.payload.visits == 1
-    assert updated_zipper.focus.payload.reward == 0
+  test "searching from the start of the game with a shorter duration works" do
+    move = MCTS.search([], 1)
 
-    updated_again_zipper = Zipper.down(updated_zipper, 0)
-    assert updated_again_zipper.focus.payload.visits == 1
-    assert updated_again_zipper.focus.payload.reward == 1
+    assert Enum.member?(0..6, move)
+  end
+
+  test "searching from a game in progress works" do
+    move = MCTS.search([3, 3, 4, 2, 2, 4, 5])
+
+    assert Enum.member?(0..6, move)
+  end
+
+  test "searching near a winning move works" do
+    move = MCTS.search([0, 1, 0, 1, 0, 1])
+
+    assert Enum.member?(0..6, move)
   end
 end
