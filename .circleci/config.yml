@@ -40,6 +40,5 @@ jobs:
       - run: mix test
       - run: mix dialyzer --format short --halt-exit-status
 
-      - store_test_results:  # upload junit test results for display in Test Summary
-          # Read more: https://circleci.com/docs/2.0/collect-test-data/
-          path: _build/test/lib # Replace with the name of your :app
+      - store_test_results:
+          path: _build/test/junit

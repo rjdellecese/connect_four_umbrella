@@ -27,7 +27,8 @@ defmodule MCTS.MixProject do
     [
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
-      {:game, in_umbrella: true}
+      {:game, in_umbrella: true},
+      {:junit_formatter, "~> 3.0", only: :test}
     ]
   end
 end

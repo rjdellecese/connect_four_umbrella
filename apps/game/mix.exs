@@ -26,7 +26,8 @@ defmodule Game.MixProject do
   defp deps do
     [
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.19", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.19", only: :dev, runtime: false},
+      {:junit_formatter, "~> 3.0", only: :test}
     ]
   end
 end
