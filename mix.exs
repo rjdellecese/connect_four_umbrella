@@ -6,6 +6,7 @@ defmodule ConnectFour.MixProject do
       apps_path: "apps",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      test_coverage: [tool: ExCoveralls],
 
       # Docs
       name: "Connect Four",
@@ -20,6 +21,8 @@ defmodule ConnectFour.MixProject do
   #
   # Run "mix help deps" for examples and options.
   defp deps do
-    []
+    [
+      {:excoveralls, "~> 0.10", only: :test}
+    ]
   end
 end
