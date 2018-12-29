@@ -45,7 +45,7 @@ defmodule MCTS.Zipper do
   @spec down(__MODULE__.t(), non_neg_integer()) :: __MODULE__.t()
   def down(zipper = %__MODULE__{}, index) when is_integer(index) do
     cond do
-      Enum.empty?(zipper.focus.children) ->
+      Node.leaf?(zipper.focus) ->
         # Raise a custom exception here?
         raise "focus node has no children"
 
