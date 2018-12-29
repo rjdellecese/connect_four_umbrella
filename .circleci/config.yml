@@ -43,6 +43,8 @@ jobs:
 
       - run: mix test
       - run: mix dialyzer --format short --halt-exit-status
+      - run: mix format --check-formatted
+      - run: mix coveralls.circle
 
       - store_test_results:
           path: _build/test/junit
