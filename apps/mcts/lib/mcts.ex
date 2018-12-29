@@ -92,7 +92,7 @@ defmodule MCTS do
 
     player =
       cond do
-        length(moves) == 0 ->
+        Enum.empty?(moves) ->
           :red
 
         length(moves) |> Integer.is_odd() ->

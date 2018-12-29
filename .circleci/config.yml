@@ -46,6 +46,7 @@ jobs:
           paths: "_build"
 
       - run: mix format --check-formatted
+      - run: mix credo
       - run: mix dialyzer --format short --halt-exit-status
       - run: mix coveralls.circle # This will run and report tests as usual, too
 

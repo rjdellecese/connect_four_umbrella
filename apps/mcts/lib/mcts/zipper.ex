@@ -46,7 +46,7 @@ defmodule MCTS.Zipper do
   def down(zipper = %__MODULE__{}, index) when is_integer(index) do
     # TODO: Test the error cases!
     cond do
-      length(zipper.focus.children) == 0 ->
+      Enum.empty?(zipper.focus.children) ->
         # Raise a custom exception here?
         raise "focus node has no children"
 
