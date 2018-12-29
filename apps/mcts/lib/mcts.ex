@@ -12,6 +12,21 @@ defmodule MCTS do
   @doc """
   Perform a Monte Carlo Tree Search starting at the position provided, searching for the given
   move duration (5 seconds by default).
+
+  ## Examples
+
+      iex> move = MCTS.search([])
+      iex> Enum.member?(0..6, move)
+      true
+
+      iex> move = MCTS.search([], 1)
+      iex> Enum.member?(0..6, move)
+      true
+
+      iex> move = MCTS.search([3, 3, 4, 2, 2, 4, 5])
+      iex> Enum.member?(0..6, move)
+      true
+
   """
   @spec search(Game.moves(), pos_integer()) :: Game.column()
   def search(moves, move_duration \\ 5) do
