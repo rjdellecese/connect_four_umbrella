@@ -44,7 +44,6 @@ defmodule MCTS.Zipper do
   """
   @spec down(__MODULE__.t(), non_neg_integer()) :: __MODULE__.t()
   def down(zipper = %__MODULE__{}, index) when is_integer(index) do
-    # TODO: Test the error cases!
     cond do
       Enum.empty?(zipper.focus.children) ->
         # Raise a custom exception here?

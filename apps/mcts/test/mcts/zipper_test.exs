@@ -48,4 +48,27 @@ defmodule MCTS.ZipperTest do
     zipper = Zipper.down(zipper, 1)
     assert zipper.focus.payload == 6
   end
+
+  describe "down/2" do
+    test "raises an error when the focus has no children", %{tree: tree} do
+      zipper =
+        %Zipper{focus: tree}
+        |> Zipper.down(0)
+        |> Zipper.down(0)
+
+      assert_raise RuntimeError, "focus node has no children", fn ->
+        Zipper.down(zipper, 0)
+      end
+    end
+
+    test "raises an ArgumentError when there is no child at the given index", %{tree: tree} do
+      zipper =
+        %Zipper{focus: tree}
+        |> Zipper.down(1)
+
+      assert_raise ArgumentError, "no child node at index: 3 (index may not be negative)", fn ->
+        Zipper.down(zipper, 3)
+      end
+    end
+  end
 end

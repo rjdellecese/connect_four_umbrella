@@ -156,9 +156,6 @@ defmodule Game do
   @spec visualize_board(pid()) :: {:ok, String.t()}
   def visualize_board(pid), do: GenServer.call(pid, :visualize_board)
 
-  # FOR DEBUGGING
-  def get_state(pid), do: GenServer.call(pid, :get_state)
-
   ##################
   # Server callbacks
   ##################
@@ -215,13 +212,6 @@ defmodule Game do
           {:reply, {:ok, String.t()}, __MODULE__.t()}
   def handle_call(:visualize_board, _from, game = %__MODULE__{}) do
     {:reply, {:ok, print_board(game)}, game}
-  end
-
-  # TODO: Remove!
-  # For debugging
-  @impl true
-  def handle_call(:get_state, _from, game = %__MODULE__{}) do
-    {:reply, {:ok, game}, game}
   end
 
   ##############
@@ -363,7 +353,6 @@ defmodule Game do
     Integer.to_string(bitboard, 2)
     |> String.reverse()
     |> pad_bitboard_string
-    # TODO: Come up with a better way to do the below
     |> (fn padded_bitboard_string ->
           String.slice(padded_bitboard_string, 0..5) <>
             String.slice(padded_bitboard_string, 7..12) <>
