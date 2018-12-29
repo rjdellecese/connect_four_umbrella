@@ -24,7 +24,7 @@ jobs:
           keys:
             - v1-build-cache-{{ .Branch }}
             - v1-build-cache
-      - run: mix do deps.get, compile  # get updated dependencies & compile them
+      - run: mix do deps.get, compile, dialyzer.build
       - save_cache:
           keys:
             - v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
