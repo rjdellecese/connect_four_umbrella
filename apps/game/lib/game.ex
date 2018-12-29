@@ -350,7 +350,8 @@ defmodule Game do
   end
 
   defp print_bitboard(bitboard) do
-    Integer.to_string(bitboard, 2)
+    bitboard
+    |> Integer.to_string(2)
     |> String.reverse()
     |> pad_bitboard_string
     |> (fn padded_bitboard_string ->

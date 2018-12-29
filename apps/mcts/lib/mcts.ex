@@ -29,7 +29,8 @@ defmodule MCTS do
     if Time.diff(Time.utc_now(), start_time) < move_duration do
       {:ok, game_pid} = Game.start_link(zipper.focus.payload.state)
 
-      select(zipper, game_pid)
+      zipper
+      |> select(game_pid)
       |> simulate(game_pid)
       |> backpropagate()
       |> search(start_time, move_duration)
@@ -95,10 +96,10 @@ defmodule MCTS do
         Enum.empty?(moves) ->
           :red
 
-        length(moves) |> Integer.is_odd() ->
+        moves |> length() |> Integer.is_odd() ->
           :yellow
 
-        length(moves) |> Integer.is_even() ->
+        moves |> length() |> Integer.is_even() ->
           :red
       end
 
