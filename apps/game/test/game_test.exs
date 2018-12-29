@@ -39,6 +39,19 @@ defmodule GameTest do
     assert result == :red_wins
   end
 
+  test "reports a draw", %{game: game} do
+    Enum.each(
+      [0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1] ++
+        [2, 3, 2, 3, 3, 2, 3, 2, 2, 3, 2, 3] ++
+        [4, 5, 4, 5, 5, 4, 5, 4, 4, 5, 4, 5] ++ [6, 6, 6, 6, 6],
+      &Game.move(game, &1)
+    )
+
+    {:ok, %{result: result}} = Game.move(game, 6)
+
+    assert result == :draw
+  end
+
   test "loads a game properly" do
     {:ok, game} = Game.start_link([1, 1, 2, 2, 3, 3])
 
