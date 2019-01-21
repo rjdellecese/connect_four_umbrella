@@ -52,34 +52,6 @@ defmodule GameTest do
     assert result == :draw
   end
 
-  test "loads a game properly" do
-    {:ok, game} = Game.start_link([1, 1, 2, 2, 3, 3])
-
-    {:ok, %{result: result}} = Game.move(game, 4)
-
-    assert result == :yellow_wins
-  end
-
-  test "doesn't load an invalid game" do
-    Process.flag(:trap_exit, true)
-
-    Game.start_link([0, 2, 5, 8])
-
-    assert_receive {:EXIT, _pid, _msg}
-
-    Process.flag(:trap_exit, false)
-  end
-
-  test "doesn't load a completed game" do
-    Process.flag(:trap_exit, true)
-
-    Game.start_link([1, 1, 2, 2, 3, 3, 4])
-
-    assert_receive {:EXIT, _pid, _msg}
-
-    Process.flag(:trap_exit, false)
-  end
-
   test "disallows out-of-bounds moves", %{game: game} do
     {status, _msg} = Game.move(game, 7)
 

@@ -31,24 +31,27 @@ defmodule MCTS do
   @spec search(Game.moves(), pos_integer()) :: Game.column()
   def search(moves, move_duration \\ 5) do
     root_node = %Node{payload: %Payload{state: moves}}
-
     zipper = %Zipper{focus: root_node}
+    {:ok, game_pid} = Game.start_link()
 
-    node = search(zipper, Time.utc_now(), move_duration)
+    node = search(zipper, Time.utc_now(), move_duration, game_pid)
 
     List.last(node.payload.state)
   end
 
-  @spec search(%Zipper{}, Time.t(), pos_integer()) :: %Node{}
-  defp search(zipper, start_time, move_duration) do
-    if Time.diff(Time.utc_now(), start_time) < move_duration do
-      {:ok, game_pid} = Game.start_link(zipper.focus.payload.state)
+  @spec search(%Zipper{}, Time.t(), pos_integer(), pid()) :: %Node{}
+  defp search(zipper, start_time, move_duration, game_pid) do
+    if Time.diff(Time.utc_now(), start_time, :microsecond) < move_duration * 1_000_000 do
+      Game.restart(game_pid)
+
+      moves = zipper.focus.payload.state
+      if Enum.any?(moves), do: Game.move(game_pid, moves)
 
       zipper
       |> select(game_pid)
       |> simulate(game_pid)
       |> backpropagate()
-      |> search(start_time, move_duration)
+      |> search(start_time, move_duration, game_pid)
     else
       best_child(zipper)
     end

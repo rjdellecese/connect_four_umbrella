@@ -73,32 +73,28 @@ defmodule Game do
   ############
 
   @doc """
-  Start a GenServer process with an optional initial game state (the `moves`
-  argument).
+  Start a GenServer process for a Connect Four game.
+
+  ## Examples
+
+      iex> {:ok, pid} = Game.start_link()
+      iex> Process.alive?(pid)
+      true
+
+  """
+  @spec start_link() :: GenServer.on_start()
+  def start_link(), do: GenServer.start_link(__MODULE__, nil)
+
+  @doc """
+  Submit a move for whomever's turn it currently is by specifying a column (0 through 6).
+
+  Make multiple moves at once by passing a list of moves. If any of the moves are invalid, none
+  (including any valid ones preceding the invalid one) will be played.
 
   `moves` is a list of all the moves completed in the game so far. Moves are
   represented as integers between 0 and 6, each reflecting the column in which
   the piece for that turn was dropped. The first integer in the list is yellow's
   move, the second is red's, the third is yellow's, and so on.
-
-  ## Examples
-
-      iex> {:ok, pid} = Game.start_link()
-      iex> is_pid(pid)
-      true
-
-      iex> {:ok, pid} = Game.start_link([4, 3])
-      iex> is_pid(pid)
-      true
-
-  """
-  @spec start_link([integer()]) :: GenServer.on_start()
-  def start_link(moves \\ []), do: GenServer.start_link(__MODULE__, moves)
-
-  @doc """
-  Submit a move for whomever's turn it currently is by specifying a column.
-
-  The server is stopped after a move is played which ends the game.
 
   Game results are reported as atoms and can be one of the following:
     - `nil` (when the game is still in progress)
@@ -113,9 +109,16 @@ defmodule Game do
       {:ok, %{moves: [4], result: nil}}
       iex> Game.move(pid, 5)
       {:ok, %{moves: [4, 5], result: nil}}
+
+      iex> {:ok, pid} = Game.start_link()
+      iex> Game.move(pid, [4, 5])
+      {:ok, %{moves: [4, 5], result: nil}}
+
   """
-  @spec move(pid(), column()) :: {:ok, %{moves: moves(), result: Game.result()}}
-  def move(pid, column), do: GenServer.call(pid, {:move, column})
+  @spec move(pid(), column() | moves()) :: {:ok, %{moves: moves(), result: result()}}
+  def move(pid, column) when is_integer(column), do: GenServer.call(pid, {:move, column})
+
+  def move(pid, moves) when is_list(moves), do: GenServer.call(pid, {:move, moves})
 
   @doc """
   Get a list of legal moves for the current position.
@@ -126,7 +129,9 @@ defmodule Game do
       iex> Game.legal_moves(pid)
       {:ok, [0, 1, 2, 3, 4, 5, 6]}
 
-      iex> {:ok, pid} = Game.start_link([3, 3, 3, 3, 3, 3])
+      iex> {:ok, pid} = Game.start_link()
+      iex> Game.move(pid, [3, 3, 3, 3, 3, 3])
+      {:ok, %{moves: [3, 3, 3, 3, 3, 3], result: nil}}
       iex> Game.legal_moves(pid)
       {:ok, [0, 1, 2, 4, 5, 6]}
 
@@ -135,68 +140,83 @@ defmodule Game do
   def legal_moves(pid), do: GenServer.call(pid, :legal_moves)
 
   @doc """
-  Get a string containing a visual representation of the board.
+  Look at the state of the game.
 
   ## Examples
 
-      iex> {:ok, pid} = Game.start_link([3, 3, 3, 4, 4])
-      iex> {:ok, board_string} = Game.visualize_board(pid)
-      iex> board_string ==
-      ...>   ". . . . . . .\\n" <>
-      ...>   ". . . . . . .\\n" <>
-      ...>   ". . . . . . .\\n" <>
-      ...>   ". . . y . . .\\n" <>
-      ...>   ". . . r y . .\\n" <>
-      ...>   ". . . y r . .\\n" <>
-      ...>   "-------------\\n" <>
-      ...>   "0 1 2 3 4 5 6"
-      true
+      iex> {:ok, pid} = Game.start_link()
+      iex> Game.move(pid, [4, 5, 4])
+      {:ok, %{moves: [4, 5, 4], result: nil}}
+      iex> Game.look(pid)
+      {:ok, %{moves: [4, 5, 4], result: nil}}
+
+  Works for finished games, too.
+
+  ## Examples
+
+      iex> {:ok, pid} = Game.start_link()
+      iex> Game.move(pid, [4, 5, 4, 5, 4, 5])
+      {:ok, %{moves: [4, 5, 4, 5, 4, 5], result: nil}}
+      iex> Game.move(pid, 4)
+      {:ok, %{moves: [4, 5, 4, 5, 4, 5, 4], result: :yellow_wins}}
+      iex> Game.look(pid)
+      {:ok, %{moves: [4, 5, 4, 5, 4, 5, 4], result: :yellow_wins}}
 
   """
-  @spec visualize_board(pid()) :: {:ok, String.t()}
-  def visualize_board(pid), do: GenServer.call(pid, :visualize_board)
+  @spec look(pid()) :: {:ok, %{moves: moves(), result: result()}}
+  def look(pid), do: GenServer.call(pid, :look)
+
+  @doc """
+  Restart the game. The game does **not** need to have a result to be restarted.
+
+  ## Examples
+
+      iex> {:ok, pid} = Game.start_link()
+      iex> Game.move(pid, 4)
+      {:ok, %{moves: [4], result: nil}}
+      iex> Game.restart(pid)
+      :ok
+      iex> Game.move(pid, 4)
+      {:ok, %{moves: [4], result: nil}}
+
+  """
+  @spec restart(pid()) :: :ok
+  def restart(pid), do: GenServer.call(pid, :restart)
 
   ##################
   # Server callbacks
   ##################
 
   @impl true
-  @spec init(moves()) :: {:ok, __MODULE__.t()} | {:stop, String.t()}
-  def init(moves \\ []) do
-    if Enum.empty?(moves) do
-      {:ok, %__MODULE__{}}
-    else
-      game_load_result = load_game(moves)
+  @spec init(nil) :: {:ok, __MODULE__.t()} | {:ok, %{result: result()}}
+  def init(_init_arg), do: {:ok, %__MODULE__{}}
 
-      case game_load_result do
-        {:ok, loaded_game} ->
-          if loaded_game.result do
-            {:stop, "Game ended with result: #{loaded_game.result}"}
-          else
-            {:ok, loaded_game}
-          end
+  @impl true
+  @spec handle_call({:move, column() | moves()}, GenServer.from(), __MODULE__.t()) ::
+          {:reply,
+           {:ok, %{moves: moves(), result: result()} | {:error, String.t()}, __MODULE__.t()}}
+  def handle_call({:move, column}, _from, game = %__MODULE__{}) when is_integer(column) do
+    cond do
+      !is_nil(game.result) ->
+        {:reply, {:error, "Game is over"}, game}
 
-        {:error, message} ->
-          {:stop, message}
-      end
+      legal_move?(column, game.column_heights) ->
+        updated_game = make_move(column, game)
+
+        {:reply, {:ok, %{moves: updated_game.moves, result: updated_game.result}}, updated_game}
+
+      true ->
+        {:reply, {:error, "Illegal move"}, game}
     end
   end
 
-  @impl true
-  @spec handle_call({:move, column()}, GenServer.from(), __MODULE__.t()) ::
-          {:reply, {:ok, __MODULE__.t()}, __MODULE__.t()}
-  def handle_call({:move, column}, _from, game = %__MODULE__{}) do
-    if legal_move?(column, game.column_heights) do
-      updated_game = make_move(column, game)
-
-      if updated_game.result do
-        {:stop, :normal, {:ok, %{moves: updated_game.moves, result: updated_game.result}},
-         updated_game}
-      else
+  def handle_call({:move, moves}, _from, game = %__MODULE__{}) when is_list(moves) do
+    case make_many_moves(moves, game) do
+      {:ok, updated_game} ->
         {:reply, {:ok, %{moves: updated_game.moves, result: updated_game.result}}, updated_game}
-      end
-    else
-      {:reply, {:error, "Illegal move"}, game}
+
+      {:error, message} ->
+        {:reply, {:error, message}, game}
     end
   end
 
@@ -208,10 +228,16 @@ defmodule Game do
   end
 
   @impl true
-  @spec handle_call(:visualize_board, GenServer.from(), __MODULE__.t()) ::
-          {:reply, {:ok, String.t()}, __MODULE__.t()}
-  def handle_call(:visualize_board, _from, game = %__MODULE__{}) do
-    {:reply, {:ok, print_board(game)}, game}
+  @spec handle_call(:look, GenServer.from(), __MODULE__.t()) ::
+          {:reply, :ok, %{moves: moves(), result: result()}}
+  def handle_call(:look, _from, game = %__MODULE__{}) do
+    {:reply, {:ok, %{moves: game.moves, result: game.result}}, game}
+  end
+
+  @impl true
+  @spec handle_call(:restart, GenServer.from(), __MODULE__.t()) :: {:reply, :ok, __MODULE__.t()}
+  def handle_call(:restart, _from, _game) do
+    {:reply, :ok, %__MODULE__{}}
   end
 
   ##############
@@ -248,7 +274,7 @@ defmodule Game do
       connected_four?(updated_game) ->
         %{updated_game | result: winning_color(updated_game)}
 
-      length(updated_game.moves) == 42 ->
+      updated_game.plies == 42 ->
         %{updated_game | result: :draw}
 
       true ->
@@ -272,19 +298,17 @@ defmodule Game do
     end
   end
 
-  @spec load_game(moves(), __MODULE__.t()) :: {:ok, __MODULE__.t()} | {:error, String.t()}
-  defp load_game(moves, game \\ %__MODULE__{})
-
-  defp load_game([next_move | remaining_moves], game = %__MODULE__{}) do
+  @spec make_many_moves(moves(), __MODULE__.t()) :: {:ok, __MODULE__.t()} | {:error, String.t()}
+  defp make_many_moves([next_move | remaining_moves], game = %__MODULE__{}) do
     if legal_move?(next_move, game.column_heights) do
       updated_game = make_move(next_move, game)
-      load_game(remaining_moves, updated_game)
+      make_many_moves(remaining_moves, updated_game)
     else
-      {:error, "Invalid game"}
+      {:error, "One or more invalid moves"}
     end
   end
 
-  defp load_game([], game = %__MODULE__{}) do
+  defp make_many_moves([], game = %__MODULE__{}) do
     {:ok, game}
   end
 
@@ -323,70 +347,5 @@ defmodule Game do
         legal_moves_
       end
     end)
-  end
-
-  #####################
-  # Board visualization
-  #####################
-
-  @spec print_board(__MODULE__.t()) :: String.t()
-  defp print_board(game = %__MODULE__{}) do
-    red_bitboard_string = print_bitboard(game.bitboards.red)
-    yellow_bitboard_string = print_bitboard(game.bitboards.yellow)
-
-    board_string =
-      Enum.reduce(0..41, "", fn n, board_string_ ->
-        next_char =
-          cond do
-            String.at(red_bitboard_string, n) == "1" -> "r"
-            String.at(yellow_bitboard_string, n) == "1" -> "y"
-            true -> "."
-          end
-
-        board_string_ <> next_char
-      end)
-
-    transpose_board_string_with_newlines(board_string)
-  end
-
-  defp print_bitboard(bitboard) do
-    bitboard
-    |> Integer.to_string(2)
-    |> String.reverse()
-    |> pad_bitboard_string
-    |> (fn padded_bitboard_string ->
-          String.slice(padded_bitboard_string, 0..5) <>
-            String.slice(padded_bitboard_string, 7..12) <>
-            String.slice(padded_bitboard_string, 14..19) <>
-            String.slice(padded_bitboard_string, 21..26) <>
-            String.slice(padded_bitboard_string, 28..33) <>
-            String.slice(padded_bitboard_string, 35..40) <>
-            String.slice(padded_bitboard_string, 42..47)
-        end).()
-  end
-
-  defp pad_bitboard_string(bitboard_string) do
-    bitboard_string_length = String.length(bitboard_string)
-
-    pad_amount =
-      if bitboard_string_length >= 48 do
-        0
-      else
-        48 - bitboard_string_length
-      end
-
-    String.pad_trailing(bitboard_string, pad_amount, ["0"])
-  end
-
-  defp transpose_board_string_with_newlines(board_string) do
-    Enum.reduce(0..41, "", fn n, transposed_board_string ->
-      transposed_board_string <>
-        String.at(board_string, 5 - div(n, 7) + rem(n, 7) * 6) <>
-        if rem(n, 7) == 6 do
-          "\n"
-        else
-          " "
-        end
-    end) <> "-------------\n0 1 2 3 4 5 6"
   end
 end
