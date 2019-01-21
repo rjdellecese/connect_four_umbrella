@@ -115,7 +115,8 @@ defmodule Game do
       {:ok, %{moves: [4, 5], result: nil}}
 
   """
-  @spec move(pid(), column() | moves()) :: {:ok, %{moves: moves(), result: result()}}
+  @spec move(pid(), column() | moves()) ::
+          {:ok, %{moves: moves(), result: result()}} | {:error, String.t()}
   def move(pid, column) when is_integer(column), do: GenServer.call(pid, {:move, column})
 
   def move(pid, moves) when is_list(moves), do: GenServer.call(pid, {:move, moves})
@@ -194,7 +195,8 @@ defmodule Game do
   @impl true
   @spec handle_call({:move, column() | moves()}, GenServer.from(), __MODULE__.t()) ::
           {:reply,
-           {:ok, %{moves: moves(), result: result()} | {:error, String.t()}, __MODULE__.t()}}
+           {:ok, %{moves: moves(), result: result()}, __MODULE__.t()} | {:error, String.t()},
+           __MODULE__.t()}
   def handle_call({:move, column}, _from, game = %__MODULE__{}) when is_integer(column) do
     cond do
       !is_nil(game.result) ->

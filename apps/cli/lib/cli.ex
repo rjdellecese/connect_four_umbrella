@@ -96,7 +96,7 @@ defmodule CLI do
             ai_move(game_pid, move_duration)
         end
 
-      {:error, "Illegal move"} ->
+      {:error, _} ->
         above_board = "Illegal move! Try again."
         choose_move(game_pid, move_duration, above_board)
     end

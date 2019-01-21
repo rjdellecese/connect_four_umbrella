@@ -46,7 +46,7 @@ defmodule CLI.UI do
     IO.puts(ui)
   end
 
-  @spec render_board(Game.moves()) :: {:ok, String.t()} | {:error, :invalid_game}
+  @spec render_board(Game.moves()) :: String.t()
   defp render_board(moves) do
     board_data =
       moves
