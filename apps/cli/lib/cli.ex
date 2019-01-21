@@ -62,7 +62,6 @@ defmodule CLI do
   end
 
   defp choose_move(game_pid, move_duration, above_board \\ "") do
-    {:ok, %{moves: moves}} = Game.look(game_pid)
     UI.render(%UI{game_pid: game_pid, below_board: "Choose your move.", above_board: above_board})
 
     IO.gets("> ")
@@ -75,10 +74,10 @@ defmodule CLI do
     result = Game.move(game_pid, move - 1)
 
     case result do
-      {:ok, %{moves: moves, result: result}} ->
+      {:ok, %{result: result_}} ->
         ui = %UI{game_pid: game_pid}
 
-        case result do
+        case result_ do
           :yellow_wins ->
             UI.render(%{ui | below_board: "You win!"})
             play_again?(game_pid)

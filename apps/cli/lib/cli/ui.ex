@@ -9,21 +9,17 @@ defmodule CLI.UI do
   @enforce_keys [:game_pid]
   defstruct(game_pid: nil, below_board: "", above_board: "")
 
-  def render(%__MODULE__{game_pid: game_pid, below_board: below_board, above_board: above_board}) do
-    {:ok, %{moves: moves}} = Game.look(game_pid)
-    board = render_board(moves)
-    ui = IO.ANSI.clear() <> above_board <> "\n" <> board <> "\n" <> below_board
-
-    IO.puts(ui)
-  end
-
   @doc ~S"""
   Get a string containing a visual representation of the board.
 
   ## Examples
 
-      iex> board_string = CLI.render_board([3, 3, 3, 4, 4])
+      iex> {:ok, game_pid} = Game.start_link()
+      iex> Game.move(game_pid, [3, 3, 3, 4, 4])
+      {:ok, %{moves: [3, 3, 3, 4, 4], result: nil}
+      iex> board_string = CLI.render(%UI{game_pid: game_pid})
       iex> board_string ==
+      ...>   "\n" <>
       ...>   "┌───┬───┬───┬───┬───┬───┬───┐\n" <>
       ...>   "│   │   │   │   │   │   │   │\n" <>
       ...>   "├───┼───┼───┼───┼───┼───┼───┤\n" <>
@@ -37,10 +33,19 @@ defmodule CLI.UI do
       ...>   "├───┼───┼───┼───┼───┼───┼───┤\n" <>
       ...>   "│   │   │   │ ○ │ ● │   │   │\n" <>
       ...>   "└───┴───┴───┴───┴───┴───┴───┘\n" <>
-      ...>   "  1   2   3   4   5   6   7"
+      ...>   "  1   2   3   4   5   6   7" <>
+      ...>   "\n"
       true
 
   """
+  def render(%__MODULE__{game_pid: game_pid, below_board: below_board, above_board: above_board}) do
+    {:ok, %{moves: moves}} = Game.look(game_pid)
+    board = render_board(moves)
+    ui = IO.ANSI.clear() <> above_board <> "\n" <> board <> "\n" <> below_board
+
+    IO.puts(ui)
+  end
+
   @spec render_board(Game.moves()) :: {:ok, String.t()} | {:error, :invalid_game}
   defp render_board(moves) do
     board_data =
