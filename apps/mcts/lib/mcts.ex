@@ -81,13 +81,9 @@ defmodule MCTS do
         zipper
       end
 
-    {new_zipper, result} = select_random_unvisited(zipper_, game_pid)
-
-    if is_nil(result) do
-      simulate({new_zipper, nil}, game_pid)
-    else
-      {new_zipper, result}
-    end
+    zipper_
+    |> select_random_unvisited(game_pid)
+    |> simulate(game_pid)
   end
 
   defp simulate({zipper, result}, _game_pid) do
