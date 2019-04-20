@@ -7,7 +7,7 @@ defmodule MCTS.Payload do
 
   @type t :: %__MODULE__{
           state: any(),
-          reward: non_neg_integer(),
+          reward: float(),
           visits: non_neg_integer(),
           fully_expanded: boolean()
         }

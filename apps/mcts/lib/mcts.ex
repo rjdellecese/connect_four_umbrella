@@ -117,18 +117,6 @@ defmodule MCTS do
           :red
       end
 
-    reward =
-      case result do
-        :yellow_wins ->
-          if player == :yellow, do: 1, else: 0
-
-        :red_wins ->
-          if player == :red, do: 1, else: 0
-
-        :draw ->
-          0.5
-      end
-
     %{
       zipper
       | focus: %{
@@ -136,11 +124,25 @@ defmodule MCTS do
           | payload: %{
               zipper.focus.payload
               | visits: zipper.focus.payload.visits + 1,
-                reward: zipper.focus.payload.reward + reward,
+                reward: zipper.focus.payload.reward + reward(result, player),
                 fully_expanded: fully_expanded?(zipper.focus)
             }
         }
     }
+  end
+
+  @spec reward(Game.result(), Game.player()) :: float()
+  defp reward(result, player) do
+    case result do
+      :yellow_wins ->
+        if player == :yellow, do: 1, else: 0
+
+      :red_wins ->
+        if player == :red, do: 1, else: 0
+
+      :draw ->
+        0.5
+    end
   end
 
   # Assumes that the node has had its children calculated already.

@@ -16,12 +16,12 @@ defmodule MCTS.Zipper do
   end
 
   @doc """
-  Returns nil if the zipper's focus is the root node.
+  Returns the same zipper, untouched, if the current focus is the root node.
   """
-  @spec up(__MODULE__.t()) :: __MODULE__.t() | nil
+  @spec up(__MODULE__.t()) :: __MODULE__.t()
   def up(zipper = %__MODULE__{}) do
     if root?(zipper) do
-      nil
+      zipper
     else
       [last_breadcrumb | remaining_breadcrumbs] = zipper.breadcrumbs
 
