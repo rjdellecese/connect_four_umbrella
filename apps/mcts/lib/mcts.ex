@@ -29,7 +29,8 @@ defmodule MCTS do
       true
 
   """
-  @spec search(Game.moves(), pos_integer()) :: Game.column()
+  @spec search(Game.moves(), resource: :time | :simulations, amount: pos_integer()) ::
+          Game.column()
   def search(moves, options) do
     %{resource: resource, amount: amount} = Enum.into(options, %{})
 
