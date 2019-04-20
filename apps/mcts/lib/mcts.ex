@@ -10,38 +10,57 @@ defmodule MCTS do
   @typep zipper_with_game_result :: {%Zipper{}, Game.result()}
 
   @doc """
-  Perform a Monte Carlo Tree Search starting at the position provided, searching for the given
-  move duration (5 seconds by default).
+  Perform a Monte Carlo Tree Search starting at the position provided, searching until the
+  specified resource has been depleted. Resource options are `:time` (measured in milliseconds) or
+  `:simulations`.
 
   ## Examples
 
-      iex> move = MCTS.search([])
+      iex> move = MCTS.search([], resource: :time, amount: 100)
       iex> Enum.member?(0..6, move)
       true
 
-      iex> move = MCTS.search([], 1)
+      iex> move = MCTS.search([], resource: :simulations, amount: 100)
       iex> Enum.member?(0..6, move)
       true
 
-      iex> move = MCTS.search([3, 3, 4, 2, 2, 4, 5])
+      iex> move = MCTS.search([3, 3, 4, 2, 2, 4, 5], resource: :simulations, amount: 5)
       iex> Enum.member?(0..6, move)
       true
 
   """
   @spec search(Game.moves(), pos_integer()) :: Game.column()
-  def search(moves, move_duration \\ 5) do
+  def search(moves, options) do
+    %{resource: resource, amount: amount} = Enum.into(options, %{})
+
+    unless Enum.member?([:time, :simulations], resource) do
+      raise ArgumentError,
+            "resource options are `:time` or `:simulations`, got: #{inspect(resource)}"
+    end
+
+    unless is_integer(amount) do
+      raise ArgumentError, "resource amount must be an integer, got: #{inspect(amount)}"
+    end
+
     root_node = %Node{payload: %Payload{state: moves}}
     zipper = %Zipper{focus: root_node}
     {:ok, game_pid} = Game.start_link()
 
-    node = search(zipper, Time.utc_now(), move_duration, game_pid)
+    node =
+      case resource do
+        :time ->
+          search_for_duration(zipper, Time.utc_now(), amount, game_pid)
+
+        :simulations ->
+          search_n_times(zipper, 0, amount, game_pid)
+      end
 
     List.last(node.payload.state)
   end
 
-  @spec search(%Zipper{}, Time.t(), pos_integer(), pid()) :: %Node{}
-  defp search(zipper, start_time, move_duration, game_pid) do
-    if Time.diff(Time.utc_now(), start_time, :microsecond) < move_duration * 1_000_000 do
+  @spec search_for_duration(%Zipper{}, Time.t(), pos_integer(), pid()) :: %Node{}
+  defp search_for_duration(zipper, start_time, move_duration, game_pid) do
+    if Time.diff(Time.utc_now(), start_time, :millisecond) < move_duration do
       Game.restart(game_pid)
 
       moves = zipper.focus.payload.state
@@ -51,7 +70,25 @@ defmodule MCTS do
       |> select(game_pid)
       |> simulate(game_pid)
       |> backpropagate()
-      |> search(start_time, move_duration, game_pid)
+      |> search_for_duration(start_time, move_duration, game_pid)
+    else
+      best_child(zipper)
+    end
+  end
+
+  @spec search_n_times(%Zipper{}, non_neg_integer(), pos_integer(), pid()) :: %Node{}
+  defp search_n_times(zipper, simulations_completed, simulations_to_run, game_pid) do
+    if simulations_completed < simulations_to_run do
+      Game.restart(game_pid)
+
+      moves = zipper.focus.payload.state
+      if Enum.any?(moves), do: Game.move(game_pid, moves)
+
+      zipper
+      |> select(game_pid)
+      |> simulate(game_pid)
+      |> backpropagate()
+      |> search_n_times(simulations_completed + 1, simulations_to_run, game_pid)
     else
       best_child(zipper)
     end

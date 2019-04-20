@@ -2,7 +2,7 @@ defmodule CLI do
   @moduledoc """
   Documentation for CLI.
   """
-  @difficulties [0.1, 1, 3]
+  @difficulties [100, 1_000, 3_000]
 
   @easy Enum.at(@difficulties, 0)
   @medium Enum.at(@difficulties, 1)
@@ -33,9 +33,9 @@ defmodule CLI do
 
     IO.puts(
       """
-      1. Easy (#{@easy}s)
-      2. Medium (#{@medium}s)
-      3. Hard (#{@hard}s)
+      1. Easy (#{@easy / 1_000}s)
+      2. Medium (#{@medium / 1_000}s)
+      3. Hard (#{@hard / 1_000}s)
       """
       |> String.trim_trailing()
     )
@@ -109,7 +109,7 @@ defmodule CLI do
 
   defp ai_move(game_pid, move_duration) do
     {:ok, %{moves: moves}} = Game.look(game_pid)
-    ai_move = MCTS.search(moves, move_duration)
+    ai_move = MCTS.search(moves, resource: :time, amount: move_duration)
     {:ok, %{result: new_result}} = Game.move(game_pid, ai_move)
 
     ui = %UI{game_pid: game_pid}
