@@ -31,7 +31,7 @@ defmodule ConnectFour.MixProject do
   # Run "mix help deps" for examples and options.
   defp deps do
     [
-      {:credo, "~> 1.1.2", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.2.0", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.10", only: :test}
     ]
   end
