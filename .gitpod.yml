@@ -1,0 +1,7 @@
+tasks:
+  - init: mix deps.get
+    command: ./cli
+
+vscode:
+  extensions:
+    - elixir-lsp.elixir-ls@0.6.1:PWsJiuLHDO1AYWXi4e6MWg==
