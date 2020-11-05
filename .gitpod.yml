@@ -1,0 +1,7 @@
+image: elixir:1.9
+tasks:
+  - init: ./gitpod_setup
+    command: ./apps/cli/cli
+vscode:
+  extensions:
+    - elixir-lsp.elixir-ls@0.6.1:PWsJiuLHDO1AYWXi4e6MWg==

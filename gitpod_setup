@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -euxo
+
+yes 2>/dev/null | mix deps.get
+cd apps/cli && mix escript.build
