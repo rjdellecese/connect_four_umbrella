@@ -6,9 +6,9 @@ The Monte Carlo Tree Search uses the [UCT algorithm](https://en.wikipedia.org/wi
 
 ## Play against it
 
-To play against it in your browser, right now, you can use Gitpod to launch a temporary dev environment containing a terminal with the CLI running by clicking on the badge below.
-
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/rjdellecese/connect_four_umbrella)
+
+To play against it in your browser, right now, you can use Gitpod to launch a temporary dev environment containing a terminal with the CLI running by clicking on the badge above.
 
 ## Setting up the project
 
