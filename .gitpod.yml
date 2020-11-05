@@ -1,6 +1,6 @@
 image: elixir:1.9
 tasks:
-  - init: mix gitpod_setup
+  - init: ./gitpod_setup
     command: ./apps/cli/cli
 vscode:
   extensions:

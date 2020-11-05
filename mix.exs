@@ -6,7 +6,6 @@ defmodule ConnectFour.MixProject do
       apps_path: "apps",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases(),
 
       # Test
       test_coverage: [tool: ExCoveralls],
@@ -35,9 +34,5 @@ defmodule ConnectFour.MixProject do
       {:credo, "~> 1.5.0", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.10", only: :test}
     ]
-  end
-  
-  defp aliases do
-    [gitpod_setup: ["deps.get", "cmd 'cd apps/cli && mix escript.build'"]]
   end
 end
